@@ -8,10 +8,21 @@ import cookieParser from "cookie-parser";
 import { razorpayWebhook } from "./controllers/razorpayWebhookController.js";
 import cors from "cors"
 const app=express()
-const PORT = 8000
+const PORT = process.env.PORT || 8000;
 connectDB()
+const allowedOrigins = [
+    "http://localhost:5173",
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true
 }));
 
@@ -28,7 +39,6 @@ app.use("/api",product)
 app.use("/api/user",user)
 app.use("/api/cart",cart)
 app.use("/api/order",order)
-app.listen(PORT,()=>{
-    console.log("Server running on the port",PORT)}
-    
-)
+app.listen(PORT, "0.0.0.0", () => {
+    console.log("Server running on port", PORT);
+});
