@@ -10,19 +10,32 @@ import cors from "cors"
 const app=express()
 const PORT = process.env.PORT || 8000;
 connectDB()
-const allowedOrigins = [
-    "http://localhost:5173",
-    process.env.FRONTEND_URL
-].filter(Boolean);
+const normalizeOrigin = (value) =>
+    typeof value === "string"
+        ? value.trim().replace(/\/+$/, "")
+        : "";
+
+const allowedOrigins = new Set(
+    [
+        "http://localhost:5173",
+        "https://frontend-ebon-seven-51.vercel.app",
+        process.env.FRONTEND_URL
+    ]
+        .map(normalizeOrigin)
+        .filter(Boolean)
+);
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (
+            !origin ||
+            allowedOrigins.has(normalizeOrigin(origin))
+        ) {
             return callback(null, true);
         }
 
         console.error("CORS blocked origin:", origin);
-        return callback(new Error("Origin not allowed by CORS"));
+        return callback(null, false);
     },
     credentials: true
 }));
